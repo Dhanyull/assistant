@@ -1,4 +1,4 @@
-<!DOCTYPE html><html><head><meta charset="utf-8"><title>Mae — test prototype</title>
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>Mae</title><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#03060b"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
 <style>
 html,body{margin:0;height:100%;background:#03060b;color:#cfe8ff;font-family:Segoe UI,Arial,sans-serif;overflow:hidden}
 #c{position:fixed;inset:0}
@@ -23,9 +23,20 @@ html,body{margin:0;height:100%;background:#03060b;color:#cfe8ff;font-family:Sego
 #lock input{font-size:22px;padding:12px;border-radius:12px;border:1px solid #2a6fb0;background:#0a1626;color:#e8f4ff;text-align:center;width:240px}
 #lmsg{color:#ffb36b;min-height:18px}
 @media(max-width:600px){#reply{max-width:92%;font-size:18px}#meter,#st{display:none}}
+
+/* compact window */
+#tag{font-size:9px;top:8px;left:10px;opacity:.5}
+#ph{display:none}
+#tools{top:8px;right:8px;gap:4px}#tools .btn{min-height:32px;min-width:34px;font-size:13px;padding:0 6px;border-radius:16px}
+#set{top:48px;right:8px}
+#reply{top:9%;font-size:clamp(14px,4.2vw,20px);max-width:88%}
+#tbar{bottom:12px;width:calc(100% - 20px)}#tin{font-size:16px;padding:10px 14px}#tbar .btn{min-height:42px}
+#bar{bottom:66px;width:calc(100% - 20px);box-sizing:border-box;padding:6px 10px;gap:8px}
+#mic{width:34px;height:34px;font-size:15px}
+#note{bottom:120px}
 </style></head><body>
 <canvas id="c"></canvas>
-<div id="tag">MAE · TEST PROTOTYPE v0 (placeholder replies)</div>
+<div id="tag">MAE</div>
 <div id="ph">Built-in replies unless a local brain is set</div>
 <div id="reply">Type below, tap the mic, or say “hey Mae”.</div>
 <div id="bar"><button id="mic" title="Push to talk">🎙</button><div id="meter"><div id="lvl"></div></div><div id="tx"></div><div id="st">idle</div></div>
@@ -60,7 +71,7 @@ const pg=new THREE.BufferGeometry(),N=1500,pp=new Float32Array(N*3);
 for(let i=0;i<N;i++){const v=new THREE.Vector3().randomDirection().multiplyScalar(2+Math.random()*1.5);pp.set([v.x,v.y,v.z],i*3);}
 pg.setAttribute('position',new THREE.BufferAttribute(pp,3));
 const pts=new THREE.Points(pg,new THREE.PointsMaterial({color:0x66ccff,size:.02,transparent:true,opacity:.6}));scene.add(pts);
-function rs(){r.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();}addEventListener('resize',rs);rs();
+function rs(){r.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();var k=Math.min(1,innerWidth/innerHeight*1.3);cam.zoom=k;cam.updateProjectionMatrix();}addEventListener('resize',rs);rs();
 let micLvl=0,speakLvl=0,amp=0;
 function loop(t){requestAnimationFrame(loop);
  if(speechSynthesis.speaking)speakLvl=.35+.25*Math.abs(Math.sin(t/90));else speakLvl*=.9;
@@ -149,4 +160,7 @@ for(const id of['pc','pc2']){$(id).addEventListener('keydown',e=>{e.stopPropagat
 $('lockbtn').onclick=showLock;
 showLock();
 window.__hudReady=true;
+</script><script>
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+if(matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: window-controls-overlay)').matches){try{window.resizeTo(420,680)}catch(e){}}
 </script></body></html>
