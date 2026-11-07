@@ -92,9 +92,19 @@ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 let rec,listening=false,mode='wake',awake=false;
 const status=s=>$('st').textContent=s;
 let muted=localStorage.getItem('mae_muted')==='1';
-function say(t){$('reply').textContent=t;speechSynthesis.cancel();if(muted)return;const u=new SpeechSynthesisUtterance(t);u.rate=1.02;
- const v=speechSynthesis.getVoices().find(v=>/en/i.test(v.lang)&&/female|zira|samantha|google us/i.test(v.name));if(v)u.voice=v;
- u.onend=()=>{status(listening?'listening':'idle')};speechSynthesis.speak(u);}
+let maeVoices=[],speechUnlocked=false,keepT=null;
+function loadVoices(){try{maeVoices=speechSynthesis.getVoices()||[]}catch(e){}}
+loadVoices();try{speechSynthesis.onvoiceschanged=loadVoices}catch(e){}
+function unlockSpeech(){if(speechUnlocked)return;speechUnlocked=true;try{const z=new SpeechSynthesisUtterance(' ');z.volume=0;z.lang='en-US';speechSynthesis.speak(z);speechSynthesis.resume();}catch(e){}}
+['pointerdown','touchstart','click','keydown'].forEach(ev=>addEventListener(ev,unlockSpeech,{capture:true,passive:true}));
+function say(t){$('reply').textContent=t;if(speechSynthesis.speaking||speechSynthesis.pending)speechSynthesis.cancel();if(muted)return;
+ setTimeout(()=>{const u=new SpeechSynthesisUtterance(t);u.rate=1.02;u.lang='en-US';if(!maeVoices.length)loadVoices();
+ const v=maeVoices.find(v=>/en/i.test(v.lang)&&/female|zira|samantha|google us/i.test(v.name))||maeVoices.find(v=>/en[-_]US/i.test(v.lang));if(v)u.voice=v;
+ const stopKeep=()=>{if(keepT){clearInterval(keepT);keepT=null}};
+ u.onstart=()=>{stopKeep();keepT=setInterval(()=>{if(!speechSynthesis.speaking){stopKeep();return}speechSynthesis.pause();speechSynthesis.resume();},10000)};
+ u.onend=()=>{stopKeep();status(listening?'listening':'idle')};
+ u.onerror=e=>{stopKeep();status('voice error: '+e.error)};
+ speechSynthesis.resume();speechSynthesis.speak(u);},100);}
 function brain(q){ // PLACEHOLDER — swap for a real AI later
  const s=q.toLowerCase();
  if(/time/.test(s))return 'It is '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'.';
