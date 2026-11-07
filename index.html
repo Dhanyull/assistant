@@ -1,4 +1,4 @@
-<!DOCTYPE html><html><head><meta charset="utf-8"><title>Jarvis — test prototype</title>
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>Mae — test prototype</title>
 <style>
 html,body{margin:0;height:100%;background:#03060b;color:#cfe8ff;font-family:Segoe UI,Arial,sans-serif;overflow:hidden}
 #c{position:fixed;inset:0}
@@ -13,14 +13,14 @@ html,body{margin:0;height:100%;background:#03060b;color:#cfe8ff;font-family:Sego
 #st{font-size:11px;color:#6fb7ff;width:110px;text-align:right}
 </style></head><body>
 <canvas id="c"></canvas>
-<div id="tag">JARVIS · TEST PROTOTYPE v0 (placeholder replies)</div>
+<div id="tag">MAE · TEST PROTOTYPE v0 (placeholder replies)</div>
 <div id="ph">Replies = local placeholder (no AI brain yet)</div>
-<div id="reply">Press <b>Space</b> or click the mic, or say “hey Jarvis”.</div>
+<div id="reply">Press <b>Space</b> or click the mic, or say “hey Mae”.</div>
 <div id="bar"><button id="mic" title="Push to talk">🎙</button><div id="meter"><div id="lvl"></div></div><div id="tx"></div><div id="st">idle</div></div>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
 <script type="module">
 import * as THREE from 'three';
-const NAME='jarvis';
+const NAME='mae';
 const $=id=>document.getElementById(id);
 // ---------- orb ----------
 const r=new THREE.WebGLRenderer({canvas:$('c'),antialias:true,alpha:true});r.setPixelRatio(devicePixelRatio);
@@ -64,7 +64,7 @@ function brain(q){ // PLACEHOLDER — swap for a real AI later
  const s=q.toLowerCase();
  if(/time/.test(s))return 'It is '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'.';
  if(/date|day is it|today/.test(s))return 'Today is '+new Date().toLocaleDateString([], {weekday:'long',month:'long',day:'numeric'})+'.';
- if(/your name|who are you/.test(s))return "I'm Jarvis, a prototype. My replies are placeholders until a real brain is connected.";
+ if(/your name|who are you/.test(s))return "I'm Mae, a prototype. My replies are placeholders until a real brain is connected.";
  if(/hello|hi\b/.test(s))return 'Hello Dan.';
  if(/stop|cancel|never ?mind/.test(s))return 'Okay.';
  return 'I heard: '+q+'. (Placeholder reply.)';}
@@ -76,11 +76,11 @@ function startRec(m){if(!SR){status('no speech API');$('reply').textContent='Spe
  rec.onresult=e=>{let fin='',int='';for(let i=e.resultIndex;i<e.results.length;i++){const x=e.results[i];x.isFinal?fin+=x[0].transcript:int+=x[0].transcript;}
   $('tx').innerHTML=(fin?'<span>'+esc(fin)+'</span> ':'')+'<span class="i">'+esc(int)+'</span>';if(fin)handle(fin);};
  rec.onend=()=>{listening=false;$('mic').classList.remove('on');if(mode==='wake')setTimeout(()=>startRec('wake'),300);else status('idle');};
- rec.onerror=e=>status(e.error);rec.start();listening=true;$('mic').classList.add('on');status(m==='ptt'?'listening':'waiting for "hey jarvis"');}
+ rec.onerror=e=>status(e.error);rec.start();listening=true;$('mic').classList.add('on');status(m==='ptt'?'listening':'waiting for "hey mae"');}
 function stopRec(){mode='wake';try{rec&&rec.stop()}catch(e){}}
 const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 $('mic').onclick=()=>{if(listening&&mode==='ptt')stopRec();else{if(listening){mode='ptt';status('listening')}else startRec('ptt');}};
 addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat){e.preventDefault();if(listening){mode='ptt';status('listening')}else startRec('ptt');}});
-addEventListener('keyup',e=>{if(e.code==='Space'){mode='wake';status('waiting for "hey jarvis"');}});
+addEventListener('keyup',e=>{if(e.code==='Space'){mode='wake';status('waiting for "hey mae"');}});
 window.__hudReady=true;
 </script></body></html>
