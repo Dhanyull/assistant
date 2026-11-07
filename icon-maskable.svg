@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#04091c"/>
+  <defs>
+    <linearGradient id="ig" x1="0.12" y1="0.08" x2="0.9" y2="0.95">
+      <stop offset="0%" stop-color="#2f7bff"/>
+      <stop offset="100%" stop-color="#59a8ff"/>
+    </linearGradient>
+    <radialGradient id="ih" cx="256" cy="256" r="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2f7bff" stop-opacity="0.34"/>
+      <stop offset="50%" stop-color="#2f7bff" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#2f7bff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="if" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="12" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g transform="translate(256 256) scale(0.74) translate(-256 -256)">
+    
+  <circle cx="256" cy="256" r="188" fill="url(#ih)"/>
+  <g filter="url(#if)">
+    <circle cx="256" cy="256" r="158" fill="none" stroke="url(#ig)" stroke-width="8"/>
+    <circle cx="256" cy="256" r="172" fill="none" stroke="#59a8ff" stroke-width="2" opacity="0.4"/>
+  </g>
+  <circle cx="256" cy="256" r="186" fill="none" stroke="#59a8ff" stroke-width="2.2" stroke-dasharray="3 14" opacity="0.55"/>
+  <g fill="none" stroke="#59a8ff" stroke-width="2.4" opacity="0.8">
+    <path d="M92 92 h28 M92 92 v28"/>
+    <path d="M420 420 h-28 M420 420 v-28"/>
+    <path d="M256 62 v18"/>
+    <path d="M450 256 h-18"/>
+  </g>
+  <path d="M168 338 L256 164 L344 338" fill="none" stroke="#ffffff" stroke-width="13" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="3"/>
+  
+  </g>
+</svg>

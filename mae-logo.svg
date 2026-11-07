@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" class="mae-logo" viewBox="0 0 540 280" role="img" aria-label="Mae">
+  <defs>
+    <linearGradient id="mae-g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2f7bff"/>
+      <stop offset="100%" stop-color="#59a8ff"/>
+    </linearGradient>
+    <radialGradient id="mae-h" cx="277" cy="140" r="130" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2f7bff" stop-opacity="0.20"/>
+      <stop offset="55%" stop-color="#2f7bff" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#2f7bff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="mae-f" x="-90%" y="-90%" width="280%" height="280%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="11" result="wide"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3.2" result="tight"/>
+      <feComponentTransfer in="wide" result="halo">
+        <feFuncA type="linear" slope="0.55"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode in="halo"/>
+        <feMergeNode in="tight"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <circle cx="277" cy="140" r="132" fill="url(#mae-h)"/>
+  <g class="glow">
+    <g filter="url(#mae-f)">
+      <circle class="ring" cx="277" cy="140" r="97" fill="none" stroke="url(#mae-g)" stroke-width="4"/>
+    </g>
+  </g>
+  <circle class="spin" cx="277" cy="140" r="114" fill="none" stroke="#59a8ff" stroke-width="1.5" stroke-dasharray="2.5 11" opacity="0.42"/>
+  <circle class="amp" cx="277" cy="140" r="97" fill="none" stroke="#b9d6ff" stroke-width="3.2" opacity="0"/>
+  <g class="ticks" fill="none" stroke="#59a8ff" stroke-width="1.4" opacity="0.75">
+    <path d="M186 46 h16 M186 46 v14"/>
+    <path d="M368 234 h-16 M368 234 v-14"/>
+    <path d="M392 118 v12"/>
+    <path d="M162 168 v-12"/>
+  </g>
+  <g class="letters" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="3">
+    <path d="M36 190 V90 L96 158 L156 90 V190"/>
+    <path d="M219 190 L277 90 L335 190"/>
+    <path d="M402 90 V190"/>
+    <path d="M402 90 H494"/>
+    <path d="M402 140 H474"/>
+    <path d="M402 190 H494"/>
+  </g>
+</svg>
