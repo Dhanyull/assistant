@@ -19,7 +19,7 @@ html,body{margin:0;height:100%;background:#03060b;color:#cfe8ff;font-family:Sego
 #set{position:fixed;top:90px;right:16px;width:min(360px,90%);background:#0a1626f2;border:1px solid #2a6fb0;border-radius:12px;padding:14px;display:none;font-size:14px;z-index:5}
 #set input{width:100%;box-sizing:border-box;font-size:16px;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #2a6fb0;background:#03060b;color:#e8f4ff}
 #note{position:fixed;left:50%;bottom:160px;transform:translateX(-50%);font-size:12px;color:#ffb36b}
-#lock{position:fixed;inset:0;background:#03060b;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+#lock{position:fixed;inset:0;display:none!important;background:#03060b;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
 #lock input{font-size:22px;padding:12px;border-radius:12px;border:1px solid #2a6fb0;background:#0a1626;color:#e8f4ff;text-align:center;width:240px}
 #lmsg{color:#ffb36b;min-height:18px}
 @media(max-width:600px){#reply{max-width:92%;font-size:18px}#meter,#st{display:none}}
@@ -41,7 +41,7 @@ html,body{margin:0;height:100%;background:#03060b;color:#cfe8ff;font-family:Sego
 <div id="reply">Type below, tap the mic, or say “hey Mae”.</div>
 <div id="bar"><button id="mic" title="Push to talk">🎙</button><div id="meter"><div id="lvl"></div></div><div id="tx"></div><div id="st">idle</div></div>
 <div id="note"></div>
-<div id="tools"><button class="btn" id="mute" title="Mute voice replies">🔊</button><button class="btn" id="gear" title="Settings">⚙</button><button class="btn" id="lockbtn" title="Lock">🔒</button></div>
+<div id="tools"><button class="btn" id="mute" title="Mute voice replies">🔊</button><button class="btn" id="gear" title="Settings">⚙</button></div>
 <div id="set"><b>Settings</b><br>Local brain URL (LM Studio, OpenAI-compatible):
 <input id="url" placeholder="http://&lt;pc-ip&gt;:1234/v1" autocomplete="off">
 <button class="btn" id="save">Save</button> <button class="btn" id="clr">Clear chat</button>
@@ -155,7 +155,7 @@ $('save').onclick=()=>{localStorage.setItem('mae_url',$('url').value.trim());not
 $('clr').onclick=()=>{hist=[];localStorage.removeItem('mae_hist');note('chat cleared');};
 // ---------- passcode lock (privacy screen) ----------
 async function sha(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('mae:'+t));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');}
-let locked=true;
+let locked=false; // passcode turned off for now (Dan, Nov 6 2026)
 function showLock(){locked=true;try{rec&&rec.stop()}catch(e){}speechSynthesis.cancel();const has=!!localStorage.getItem('mae_pass');
  $('lt').textContent=has?'Enter passcode':'Set a passcode for Mae';$('pc2').style.display=has?'none':'';$('unl').textContent=has?'Unlock':'Set passcode';
  $('pc').value=$('pc2').value='';$('lmsg').textContent='';$('lock').style.display='flex';setTimeout(()=>$('pc').focus(),50);}
@@ -167,8 +167,7 @@ async function unlock(){if(!(window.crypto&&crypto.subtle)){$('lmsg').textConten
  locked=false;$('lock').style.display='none';}
 $('unl').onclick=unlock;
 for(const id of['pc','pc2']){$(id).addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')unlock();});$(id).addEventListener('keyup',e=>e.stopPropagation());}
-$('lockbtn').onclick=showLock;
-showLock();
+// passcode off: no lock on open
 window.__hudReady=true;
 </script><script>
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
