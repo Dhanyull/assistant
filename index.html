@@ -11,13 +11,36 @@ html,body{margin:0;height:100%;background:#03060b;color:#cfe8ff;font-family:Sego
 #meter{width:90px;height:8px;background:#122;border-radius:4px;overflow:hidden}#lvl{height:100%;width:0;background:linear-gradient(90deg,#3af,#9ff)}
 #tx{flex:1;font-size:16px;min-height:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#tx .i{color:#7a8798}
 #st{font-size:11px;color:#6fb7ff;width:110px;text-align:right}
+#bar{bottom:96px}
+#tbar{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);width:min(820px,92%);display:flex;gap:8px}
+#tin{flex:1;font-size:18px;padding:14px 16px;border-radius:24px;border:1px solid #2a6fb0;background:#0a1626;color:#e8f4ff;outline:none}
+.btn{min-width:56px;min-height:52px;font-size:17px;border-radius:24px;border:1px solid #3af;background:#071322;color:#3af;cursor:pointer;padding:0 14px}
+#tools{position:fixed;top:40px;right:16px;display:flex;gap:6px}#tools .btn{min-height:40px;min-width:44px;font-size:15px}
+#set{position:fixed;top:90px;right:16px;width:min(360px,90%);background:#0a1626f2;border:1px solid #2a6fb0;border-radius:12px;padding:14px;display:none;font-size:14px;z-index:5}
+#set input{width:100%;box-sizing:border-box;font-size:16px;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #2a6fb0;background:#03060b;color:#e8f4ff}
+#note{position:fixed;left:50%;bottom:160px;transform:translateX(-50%);font-size:12px;color:#ffb36b}
+#lock{position:fixed;inset:0;background:#03060b;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+#lock input{font-size:22px;padding:12px;border-radius:12px;border:1px solid #2a6fb0;background:#0a1626;color:#e8f4ff;text-align:center;width:240px}
+#lmsg{color:#ffb36b;min-height:18px}
+@media(max-width:600px){#reply{max-width:92%;font-size:18px}#meter,#st{display:none}}
 </style></head><body>
 <canvas id="c"></canvas>
 <div id="tag">MAE · TEST PROTOTYPE v0 (placeholder replies)</div>
-<div id="ph">Replies = local placeholder (no AI brain yet)</div>
-<div id="reply">Press <b>Space</b> or click the mic, or say “hey Mae”.</div>
+<div id="ph">Built-in replies unless a local brain is set</div>
+<div id="reply">Type below, tap the mic, or say “hey Mae”.</div>
 <div id="bar"><button id="mic" title="Push to talk">🎙</button><div id="meter"><div id="lvl"></div></div><div id="tx"></div><div id="st">idle</div></div>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+<div id="note"></div>
+<div id="tools"><button class="btn" id="mute" title="Mute voice replies">🔊</button><button class="btn" id="gear" title="Settings">⚙</button><button class="btn" id="lockbtn" title="Lock">🔒</button></div>
+<div id="set"><b>Settings</b><br>Local brain URL (LM Studio, OpenAI-compatible):
+<input id="url" placeholder="http://&lt;pc-ip&gt;:1234/v1" autocomplete="off">
+<button class="btn" id="save">Save</button> <button class="btn" id="clr">Clear chat</button>
+<p style="color:#9fc">Nothing is stored on any server. Voice uses Chrome's speech service; typing does not.</p>
+<p style="color:#7a8798;font-size:12px">URL, chat history and passcode hash are saved only on this device (localStorage).</p></div>
+<div id="tbar"><input id="tin" placeholder="Type to Mae…" enterkeyhint="send" autocomplete="off"><button class="btn" id="send">Send</button></div>
+<div id="lock"><div style="font-size:28px;letter-spacing:4px;color:#6fb7ff">MAE</div><div id="lt">Enter passcode</div>
+<input id="pc" type="password" inputmode="numeric" autocomplete="off"><input id="pc2" type="password" inputmode="numeric" placeholder="Confirm" style="display:none">
+<button class="btn" id="unl">Unlock</button><div id="lmsg"></div></div>
+<script type="importmap">{"imports":{"three":"./three.module.js"}}</script>
 <script type="module">
 import * as THREE from 'three';
 const NAME='mae';
@@ -57,7 +80,8 @@ async function startAudio(){if(audioOn)return;audioOn=true;
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 let rec,listening=false,mode='wake',awake=false;
 const status=s=>$('st').textContent=s;
-function say(t){$('reply').textContent=t;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.rate=1.02;
+let muted=localStorage.getItem('mae_muted')==='1';
+function say(t){$('reply').textContent=t;speechSynthesis.cancel();if(muted)return;const u=new SpeechSynthesisUtterance(t);u.rate=1.02;
  const v=speechSynthesis.getVoices().find(v=>/en/i.test(v.lang)&&/female|zira|samantha|google us/i.test(v.name));if(v)u.voice=v;
  u.onend=()=>{status(listening?'listening':'idle')};speechSynthesis.speak(u);}
 function brain(q){ // PLACEHOLDER — swap for a real AI later
@@ -68,10 +92,10 @@ function brain(q){ // PLACEHOLDER — swap for a real AI later
  if(/hello|hi\b/.test(s))return 'Hello Dan.';
  if(/stop|cancel|never ?mind/.test(s))return 'Okay.';
  return 'I heard: '+q+'. (Placeholder reply.)';}
-function handle(final){let q=final.trim();const w=q.toLowerCase().indexOf('hey '+NAME);
+function handle(final){if(locked)return;let q=final.trim();const w=q.toLowerCase().indexOf('hey '+NAME);
  if(mode==='wake'&&!awake){if(w<0)return;q=q.slice(w+4+NAME.length).replace(/^[,.\s]+/,'');if(!q){awake=true;say('Yes?');return;}}
- awake=false;if(q)say(brain(q));if(mode==='ptt')stopRec();}
-function startRec(m){if(!SR){status('no speech API');$('reply').textContent='Speech recognition needs Chrome.';return;}
+ awake=false;if(q)ask(q);if(mode==='ptt')stopRec();}
+function startRec(m){if(locked)return;if(!SR){status('no speech API');$('reply').textContent='Speech recognition needs Chrome.';return;}
  startAudio();mode=m;if(listening)return;rec=new SR();rec.lang='en-US';rec.interimResults=true;rec.continuous=true;
  rec.onresult=e=>{let fin='',int='';for(let i=e.resultIndex;i<e.results.length;i++){const x=e.results[i];x.isFinal?fin+=x[0].transcript:int+=x[0].transcript;}
   $('tx').innerHTML=(fin?'<span>'+esc(fin)+'</span> ':'')+'<span class="i">'+esc(int)+'</span>';if(fin)handle(fin);};
@@ -82,5 +106,47 @@ const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 $('mic').onclick=()=>{if(listening&&mode==='ptt')stopRec();else{if(listening){mode='ptt';status('listening')}else startRec('ptt');}};
 addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat){e.preventDefault();if(listening){mode='ptt';status('listening')}else startRec('ptt');}});
 addEventListener('keyup',e=>{if(e.code==='Space'){mode='wake';status('waiting for "hey mae"');}});
+// ---------- typing + local brain ----------
+const isPC=location.protocol==='file:'||/^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+const SYS="You are Mae, Dan's personal assistant. Be brief, warm, and plain.";
+let hist=[];try{hist=JSON.parse(localStorage.getItem('mae_hist')||'[]')}catch(e){hist=[]}
+const getURL=()=>{const u=localStorage.getItem('mae_url');return u!==null?u:(isPC?'http://localhost:1234/v1':'');};
+const note=t=>$('note').textContent=t||'';
+let busy=false;
+async function ask(q){if(busy)return;busy=true;status('thinking');let a=null;const url=getURL().trim().replace(/\/+$/,'');
+ if(url){try{const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),60000);
+  const res=await fetch(url+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,
+   body:JSON.stringify({model:'local-model',messages:[{role:'system',content:SYS},...hist.slice(-20),{role:'user',content:q}],temperature:.7})});
+  clearTimeout(to);if(!res.ok)throw new Error(res.status);const j=await res.json();a=(j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content||'').replace(/<think>[\s\S]*?<\/think>/g,'').trim()||null;
+  if(a)note('');}catch(e){a=null;}}
+ if(!a){a=brain(q);note(url?'offline brain (local AI not reachable, using built-in replies)':'offline brain (no local AI set)');}
+ hist.push({role:'user',content:q},{role:'assistant',content:a});hist=hist.slice(-20);localStorage.setItem('mae_hist',JSON.stringify(hist));
+ busy=false;status('idle');say(a);}
+function sendTyped(){const v=$('tin').value.trim();if(!v)return;$('tin').value='';$('tx').textContent=v;ask(v);}
+$('send').onclick=sendTyped;
+$('tin').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter'){e.preventDefault();sendTyped();}});
+$('tin').addEventListener('keyup',e=>e.stopPropagation());
+const setMute=()=>{$('mute').textContent=muted?'🔇':'🔊';};setMute();
+$('mute').onclick=()=>{muted=!muted;localStorage.setItem('mae_muted',muted?'1':'0');if(muted)speechSynthesis.cancel();setMute();};
+$('gear').onclick=()=>{const p=$('set');p.style.display=p.style.display==='block'?'none':'block';$('url').value=getURL();};
+$('url').addEventListener('keydown',e=>e.stopPropagation());
+$('save').onclick=()=>{localStorage.setItem('mae_url',$('url').value.trim());note('saved');$('set').style.display='none';};
+$('clr').onclick=()=>{hist=[];localStorage.removeItem('mae_hist');note('chat cleared');};
+// ---------- passcode lock (privacy screen) ----------
+async function sha(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('mae:'+t));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');}
+let locked=true;
+function showLock(){locked=true;try{rec&&rec.stop()}catch(e){}speechSynthesis.cancel();const has=!!localStorage.getItem('mae_pass');
+ $('lt').textContent=has?'Enter passcode':'Set a passcode for Mae';$('pc2').style.display=has?'none':'';$('unl').textContent=has?'Unlock':'Set passcode';
+ $('pc').value=$('pc2').value='';$('lmsg').textContent='';$('lock').style.display='flex';setTimeout(()=>$('pc').focus(),50);}
+async function unlock(){if(!(window.crypto&&crypto.subtle)){$('lmsg').textContent='Lock needs https or localhost.';return;}
+ const v=$('pc').value,h=localStorage.getItem('mae_pass');
+ if(!h){if(v.length<4){$('lmsg').textContent='Use at least 4 characters.';return;}if(v!==$('pc2').value){$('lmsg').textContent='Passcodes do not match.';return;}
+  localStorage.setItem('mae_pass',await sha(v));}
+ else if(await sha(v)!==h){$('lmsg').textContent='Wrong passcode.';$('pc').value='';return;}
+ locked=false;$('lock').style.display='none';}
+$('unl').onclick=unlock;
+for(const id of['pc','pc2']){$(id).addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')unlock();});$(id).addEventListener('keyup',e=>e.stopPropagation());}
+$('lockbtn').onclick=showLock;
+showLock();
 window.__hudReady=true;
 </script></body></html>
