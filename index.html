@@ -1,0 +1,86 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>Jarvis — test prototype</title>
+<style>
+html,body{margin:0;height:100%;background:#03060b;color:#cfe8ff;font-family:Segoe UI,Arial,sans-serif;overflow:hidden}
+#c{position:fixed;inset:0}
+#tag{position:fixed;top:12px;left:16px;font-size:12px;letter-spacing:2px;color:#6fb7ff;opacity:.8}
+#ph{position:fixed;top:12px;right:16px;font-size:11px;color:#ffb36b;border:1px solid #ffb36b55;padding:3px 8px;border-radius:4px}
+#reply{position:fixed;left:50%;top:14%;transform:translateX(-50%);max-width:70%;text-align:center;font-size:20px;color:#e8f4ff;text-shadow:0 0 12px #3af}
+#bar{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);width:min(820px,92%);display:flex;gap:12px;align-items:center;background:#0a1626cc;border:1px solid #2a6fb066;border-radius:28px;padding:10px 16px;box-shadow:0 0 24px #1a6fff33}
+#mic{width:40px;height:40px;border-radius:50%;border:1px solid #3af;background:#071322;color:#3af;cursor:pointer;font-size:18px}
+#mic.on{background:#3af;color:#021}
+#meter{width:90px;height:8px;background:#122;border-radius:4px;overflow:hidden}#lvl{height:100%;width:0;background:linear-gradient(90deg,#3af,#9ff)}
+#tx{flex:1;font-size:16px;min-height:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#tx .i{color:#7a8798}
+#st{font-size:11px;color:#6fb7ff;width:110px;text-align:right}
+</style></head><body>
+<canvas id="c"></canvas>
+<div id="tag">JARVIS · TEST PROTOTYPE v0 (placeholder replies)</div>
+<div id="ph">Replies = local placeholder (no AI brain yet)</div>
+<div id="reply">Press <b>Space</b> or click the mic, or say “hey Jarvis”.</div>
+<div id="bar"><button id="mic" title="Push to talk">🎙</button><div id="meter"><div id="lvl"></div></div><div id="tx"></div><div id="st">idle</div></div>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+const NAME='jarvis';
+const $=id=>document.getElementById(id);
+// ---------- orb ----------
+const r=new THREE.WebGLRenderer({canvas:$('c'),antialias:true,alpha:true});r.setPixelRatio(devicePixelRatio);
+const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(45,1,.1,100);cam.position.z=6;
+const geo=new THREE.IcosahedronGeometry(1.4,64);
+const mat=new THREE.ShaderMaterial({transparent:true,uniforms:{t:{value:0},a:{value:0},col:{value:new THREE.Color('#33aaff')}},
+vertexShader:`uniform float t,a;varying float vN;varying vec3 vNorm;
+float n(vec3 p){return sin(p.x*3.+t)*sin(p.y*3.7+t*1.3)*sin(p.z*4.1+t*.7);}
+void main(){vec3 p=position+normal*(n(position)*(.06+a*.5));vNorm=normalize(normalMatrix*normal);vN=n(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`,
+fragmentShader:`uniform vec3 col;uniform float a;varying vec3 vNorm;varying float vN;
+void main(){float f=pow(1.-abs(vNorm.z),2.2);vec3 c=col*(f*2.+.15+a*.8)+vec3(.6,.9,1.)*f*a;gl_FragColor=vec4(c,f*.9+.15);}`});
+const orb=new THREE.Mesh(geo,mat);scene.add(orb);
+const pg=new THREE.BufferGeometry(),N=1500,pp=new Float32Array(N*3);
+for(let i=0;i<N;i++){const v=new THREE.Vector3().randomDirection().multiplyScalar(2+Math.random()*1.5);pp.set([v.x,v.y,v.z],i*3);}
+pg.setAttribute('position',new THREE.BufferAttribute(pp,3));
+const pts=new THREE.Points(pg,new THREE.PointsMaterial({color:0x66ccff,size:.02,transparent:true,opacity:.6}));scene.add(pts);
+function rs(){r.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();}addEventListener('resize',rs);rs();
+let micLvl=0,speakLvl=0,amp=0;
+function loop(t){requestAnimationFrame(loop);
+ if(speechSynthesis.speaking)speakLvl=.35+.25*Math.abs(Math.sin(t/90));else speakLvl*=.9;
+ amp+=(Math.max(micLvl,speakLvl)-amp)*.15;mat.uniforms.t.value=t/1000;mat.uniforms.a.value=amp;
+ mat.uniforms.col.value.set(speechSynthesis.speaking?'#a06bff':listening?'#33ffd0':'#33aaff');
+ orb.rotation.y+=.003;pts.rotation.y-=.0008;orb.scale.setScalar(1+amp*.25);
+ $('lvl').style.width=Math.min(100,micLvl*250)+'%';r.render(scene,cam);}
+requestAnimationFrame(loop);
+// ---------- mic level ----------
+let audioOn=false;
+async function startAudio(){if(audioOn)return;audioOn=true;
+ try{const s=await navigator.mediaDevices.getUserMedia({audio:true});const ac=new AudioContext(),an=ac.createAnalyser();an.fftSize=512;
+ ac.createMediaStreamSource(s).connect(an);const d=new Uint8Array(an.fftSize);
+ (function m(){an.getByteTimeDomainData(d);let s2=0;for(const v of d){const x=(v-128)/128;s2+=x*x}micLvl=Math.sqrt(s2/d.length);requestAnimationFrame(m)})();
+ }catch(e){status('mic blocked');}}
+// ---------- speech ----------
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec,listening=false,mode='wake',awake=false;
+const status=s=>$('st').textContent=s;
+function say(t){$('reply').textContent=t;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.rate=1.02;
+ const v=speechSynthesis.getVoices().find(v=>/en/i.test(v.lang)&&/female|zira|samantha|google us/i.test(v.name));if(v)u.voice=v;
+ u.onend=()=>{status(listening?'listening':'idle')};speechSynthesis.speak(u);}
+function brain(q){ // PLACEHOLDER — swap for a real AI later
+ const s=q.toLowerCase();
+ if(/time/.test(s))return 'It is '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'.';
+ if(/date|day is it|today/.test(s))return 'Today is '+new Date().toLocaleDateString([], {weekday:'long',month:'long',day:'numeric'})+'.';
+ if(/your name|who are you/.test(s))return "I'm Jarvis, a prototype. My replies are placeholders until a real brain is connected.";
+ if(/hello|hi\b/.test(s))return 'Hello Dan.';
+ if(/stop|cancel|never ?mind/.test(s))return 'Okay.';
+ return 'I heard: '+q+'. (Placeholder reply.)';}
+function handle(final){let q=final.trim();const w=q.toLowerCase().indexOf('hey '+NAME);
+ if(mode==='wake'&&!awake){if(w<0)return;q=q.slice(w+4+NAME.length).replace(/^[,.\s]+/,'');if(!q){awake=true;say('Yes?');return;}}
+ awake=false;if(q)say(brain(q));if(mode==='ptt')stopRec();}
+function startRec(m){if(!SR){status('no speech API');$('reply').textContent='Speech recognition needs Chrome.';return;}
+ startAudio();mode=m;if(listening)return;rec=new SR();rec.lang='en-US';rec.interimResults=true;rec.continuous=true;
+ rec.onresult=e=>{let fin='',int='';for(let i=e.resultIndex;i<e.results.length;i++){const x=e.results[i];x.isFinal?fin+=x[0].transcript:int+=x[0].transcript;}
+  $('tx').innerHTML=(fin?'<span>'+esc(fin)+'</span> ':'')+'<span class="i">'+esc(int)+'</span>';if(fin)handle(fin);};
+ rec.onend=()=>{listening=false;$('mic').classList.remove('on');if(mode==='wake')setTimeout(()=>startRec('wake'),300);else status('idle');};
+ rec.onerror=e=>status(e.error);rec.start();listening=true;$('mic').classList.add('on');status(m==='ptt'?'listening':'waiting for "hey jarvis"');}
+function stopRec(){mode='wake';try{rec&&rec.stop()}catch(e){}}
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+$('mic').onclick=()=>{if(listening&&mode==='ptt')stopRec();else{if(listening){mode='ptt';status('listening')}else startRec('ptt');}};
+addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat){e.preventDefault();if(listening){mode='ptt';status('listening')}else startRec('ptt');}});
+addEventListener('keyup',e=>{if(e.code==='Space'){mode='wake';status('waiting for "hey jarvis"');}});
+window.__hudReady=true;
+</script></body></html>
