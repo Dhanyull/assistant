@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#1a1510" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="description" content="Pixel Quest — a free-play 8-bit fantasy RPG tavern. Spin slots, bank loot, and train skills." />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="icon" type="image/png" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <title>Pixel Quest</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+
+    <section id="screenHub" class="screen">
+      <div class="castle tavern">
+        <div class="merlons" aria-hidden="true"></div>
+        <header class="title-row">
+          <div class="torch" aria-hidden="true"><span class="flame"></span></div>
+          <div class="banner-wrap">
+            <div class="crest" aria-hidden="true"><canvas class="js-crest" width="48" height="48"></canvas></div>
+            <div class="banner">
+              <h1>PIXEL QUEST</h1>
+              <h2>THE GILDED TANKARD</h2>
+            </div>
+          </div>
+          <div class="torch right" aria-hidden="true"><span class="flame"></span></div>
+        </header>
+
+        <section class="hud hub-hud">
+          <div class="level-badge">
+            <span class="lvl-cap">LEVEL</span>
+            <span class="lvl-num js-level">1</span>
+          </div>
+          <div class="hud-mid">
+            <div class="xp-row">
+              <span class="skull" aria-hidden="true"></span>
+              <span class="js-xp">XP: 0 / 50</span>
+            </div>
+            <div class="xp-track"><div class="xp-fill js-xp-fill"></div></div>
+            <div class="coins-row">
+              <span class="coin-icon" aria-hidden="true"></span>
+              <span class="js-coins">500</span>
+            </div>
+          </div>
+          <div class="area-chip">
+            <span class="js-area-name">Willowbend</span>
+          </div>
+        </section>
+
+        <section class="skills js-skills"></section>
+        <p class="tavern-line">Choose a table, adventurer. Coins, skills, and bank are shared.</p>
+        <div class="game-grid" id="gameGrid"></div>
+
+        <nav class="toolbar">
+          <button type="button" class="tool js-bank">BANK</button>
+          <button type="button" class="tool js-map">MAP</button>
+          <button type="button" class="tool js-mute" aria-label="Mute">SOUND</button>
+        </nav>
+      </div>
+    </section>
+
+    <section id="screenSlots" class="screen hidden">
+      <div class="castle">
+        <div class="merlons" aria-hidden="true"></div>
+
+        <header class="title-row">
+          <div class="torch" aria-hidden="true"><span class="flame"></span></div>
+          <div class="banner-wrap">
+            <div class="crest" aria-hidden="true"><canvas class="js-crest" width="48" height="48"></canvas></div>
+            <div class="banner">
+              <h1>PIXEL QUEST</h1>
+              <h2>SLOTS</h2>
+            </div>
+          </div>
+          <div class="torch right" aria-hidden="true"><span class="flame"></span></div>
+        </header>
+
+        <section class="combat" id="combat">
+          <div class="combat-side player">
+            <div class="who">YOU</div>
+            <div class="hp-track"><div class="hp-fill js-player-hp-fill"></div></div>
+            <div class="hp-label js-player-hp">30/30</div>
+          </div>
+          <div class="monster-card">
+            <canvas id="monsterSprite" width="64" height="64"></canvas>
+            <div class="monster-meta">
+              <div class="monster-name" id="monsterName">Giant Rat</div>
+              <div class="hp-track boss"><div class="hp-fill enemy js-monster-hp-fill"></div></div>
+              <div class="hp-label js-monster-hp">20/20</div>
+            </div>
+          </div>
+          <div class="combat-side area">
+            <div class="who js-area-name">Willowbend</div>
+            <div class="sub js-area-biome">Meadow</div>
+          </div>
+        </section>
+
+        <div class="float-layer" id="floatLayer"></div>
+
+        <section class="reel-frame" id="reelFrame">
+          <canvas id="reels" width="360" height="220"></canvas>
+        </section>
+
+        <p class="result" id="result">Match 3+ from the left. Swords hit harder!</p>
+
+        <section class="hud">
+          <div class="level-badge">
+            <span class="lvl-cap">LEVEL</span>
+            <span class="lvl-num js-level">1</span>
+          </div>
+          <div class="hud-mid">
+            <div class="xp-row">
+              <span class="skull" aria-hidden="true"></span>
+              <span class="js-xp">XP: 0 / 50</span>
+            </div>
+            <div class="xp-track"><div class="xp-fill js-xp-fill"></div></div>
+            <div class="coins-row">
+              <span class="coin-icon" aria-hidden="true"></span>
+              <span class="js-coins">500</span>
+            </div>
+          </div>
+          <div class="bet-box">
+            <button type="button" id="betMinus" class="bet-btn" aria-label="Decrease bet">−</button>
+            <div class="bet-readout">
+              <span class="bet-cap">BET</span>
+              <span id="betText">10</span>
+            </div>
+            <button type="button" id="betPlus" class="bet-btn" aria-label="Increase bet">+</button>
+          </div>
+        </section>
+
+        <section class="skills js-skills"></section>
+
+        <nav class="toolbar">
+          <button type="button" class="tool js-bank">BANK</button>
+          <button type="button" class="tool js-map">MAP</button>
+          <button type="button" class="tool js-mute" aria-label="Mute">SOUND</button>
+          <button type="button" class="tool js-tavern">TAVERN</button>
+        </nav>
+
+        <button type="button" id="btnSpin" class="spin">SPIN</button>
+      </div>
+    </section>
+
+    <section id="screenGame" class="screen hidden">
+      <div class="castle">
+        <div class="merlons" aria-hidden="true"></div>
+        <div id="gameRoot"></div>
+        <nav class="toolbar">
+          <button type="button" class="tool js-tavern">TAVERN</button>
+        </nav>
+      </div>
+    </section>
+  </div>
+
+  <div class="overlay hidden" id="overlay" role="dialog" aria-modal="true">
+    <div class="panel" id="overlayPanel"></div>
+  </div>
+
+  <script src="js/sprites.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/registry.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/slots.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
