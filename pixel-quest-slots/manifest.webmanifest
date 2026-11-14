@@ -1,0 +1,16 @@
+{
+  "name": "Pixel Quest",
+  "short_name": "Pixel Quest",
+  "description": "A free-play 8-bit fantasy RPG tavern. Spin slots, bank loot, and train skills.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1510",
+  "theme_color": "#1a1510",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
